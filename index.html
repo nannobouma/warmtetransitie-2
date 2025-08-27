@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            min-height: calc(100vh - 40px);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu-item {
+            margin-bottom: 10px;
+        }
+
+        .menu-item button {
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .menu-item button:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .menu-item button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .section-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .chat-conversation {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .ai-message {
+            background: #e8eaff;
+            color: #333;
+            border: 1px solid #d0d5ff;
+        }
+
+        .message-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .public-chat {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid #e8eaff;
+        }
+
+        .chat-header {
+            margin-bottom: 20px;
+        }
+
+        .chat-header h3 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #d0d5ff;
+            border-radius: 12px;
+            padding: 15px;
+            background: white;
+            margin-bottom: 15px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e8eaff;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-section p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+            
+            .menu-item button {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+                            <div class="logo">
+                <h1>Warmtetransitie Hub</h1>
+                <p>AI-chats over de energietransitie</p>
+            </div>
+            <ul class="menu" id="menu">
+                <li class="menu-item">
+                    <button onclick="showSection('welcome')" class="active">🏠 Welkom</button>
+                </li>
+                <li class="menu-item">
+                    <button onclick="showSection('wetgeving')">📋 Wetgeving Warmtetransitie</button>
+                </li>
+                <li class="menu-item">
+                    <button onclick="showSection('techniek')">🔧 Technische Oplossingen</button>
+                </li>
+                <li class="menu-item">
+                    <button onclick="showSection('cooperaties')">🤝 Rol Energiecoöperaties</button>
+                </li>
+                <li class="menu-item">
+                    <button onclick="showSection('bewoners')">🏠 Wat Kunnen Bewoners</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <!-- Welkom Sectie -->
+            <div id="welcome" class="content-section active">
+                <div class="welcome-section">
+                    <h2>Welkom bij Warmtetransitie Hub</h2>
+                    <p>Ontdek fascinerende gesprekken met AI over de warmtetransitie. Van wetgeving en technische oplossingen tot de rol van energiecoöperaties en wat bewoners kunnen doen. Kies een onderwerp uit het menu of stel je eigen vragen in de chat.</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🌱</div>
+                            <h3>Warmtetransitie</h3>
+                            <p>Leer over de overgang van gas naar duurzame warmte</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💬</div>
+                            <h3>Expert AI-Chat</h3>
+                            <p>Stel vragen en krijg gedetailleerde antwoorden</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📚</div>
+                            <h3>Kennisdeling</h3>
+                            <p>Praktische informatie voor bewoners en professionals</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wetgeving Sectie -->
+            <div id="wetgeving" class="content-section">
+                <div class="section-header">
+                    <h2>Wetgeving Warmtetransitie</h2>
+                    <p>Wet- en regelgeving rond de overgang naar duurzame warmte</p>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Wat houdt de Wet Collectieve Warmtevoorziening precies in?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        De Wet Collectieve Warmtevoorziening regelt de aanleg en exploitatie van warmtenetten. Deze wet stelt kwaliteitseisen aan warmteleveranciers, beschermt consumentenrechten, en regelt tarieven. Gemeenten krijgen een belangrijke rol bij het aanwijzen van warmtegebieden en het verlenen van vergunningen voor warmtenetten.
+                    </div>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Welke subsidies zijn er beschikbaar voor woningisolatie?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Er zijn verschillende subsidieregelingen beschikbaar: de ISDE-regeling voor isolatiemaatregelen, lokale gemeentelijke subsidies, en voor huurwoningen het Stimuleringsfonds Volkshuisvesting. Ook zijn er fiscale voordelen zoals BTW-verlaging op isolatiemaatregelen. Het is belangrijk om te checken welke regelingen in uw gemeente van toepassing zijn.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technische Oplossingen Sectie -->
+            <div id="techniek" class="content-section">
+                <div class="section-header">
+                    <h2>Technische Oplossingsrichtingen</h2>
+                    <p>Praktische en technische aspecten van de warmtetransitie</p>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Wat zijn de voor- en nadelen van verschillende warmtepompen?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Lucht-water warmtepompen zijn goedkoper maar minder efficiënt bij koude. Bodem-water warmtepompen zijn zeer efficiënt maar duurder in aanschaf. Lucht-lucht pompen zijn geschikt voor goed geïsoleerde woningen. Hybride warmtepompen combineren warmtepomp met gasketel als backup. De keuze hangt af van isolatiegraad, budget en lokale omstandigheden.
+                    </div>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Hoe werkt een warmtenet precies?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Een warmtenet transporteert warm water via geïsoleerde leidingen van een centrale bron naar woningen. De warmtebron kan een biomassacentrale, geothermie, restwarmte of warmte-koudeopslag zijn. In elke woning zit een warmtewisselaar die de warmte overdraagt aan het huissysteem. Het afgekoelde water gaat terug naar de bron om opnieuw verwarmd te worden.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energiecoöperaties Sectie -->
+            <div id="cooperaties" class="content-section">
+                <div class="section-header">
+                    <h2>Rol Energiecoöperaties in de Warmtetransitie</h2>
+                    <p>Hoe energiecoöperaties bijdragen aan de duurzame warmtetransitie</p>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Wat kunnen energiecoöperaties betekenen voor lokale warmteprojecten?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Energiecoöperaties kunnen lokale warmteprojecten initiëren, financieren en beheren. Ze bundelen de kracht van bewoners, kunnen gezamenlijk investeren in warmtepompen of warmtenetten, en zorgen voor democratische besluitvorming. Coöperaties hebben vaak toegang tot specifieke subsidies en kunnen maatwerk leveren dat past bij de lokale situatie.
+                    </div>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Hoe start je een energiecoöperatie in je buurt?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Start met het organiseren van een informatiebijeenkomst voor geïnteresseerde buren. Vorm een kerngroep, doe onderzoek naar lokale mogelijkheden, en laat je adviseren door bestaande coöperaties. REScoopNL en Hier Opgewekt bieden ondersteuning bij het opstarten. Zorg voor een heldere visie, juridische structuur (vaak vereniging + coöperatie), en begin klein met een concreet project.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bewoners Sectie -->
+            <div id="bewoners" class="content-section">
+                <div class="section-header">
+                    <h2>Wat Kunnen Bewoners Doen</h2>
+                    <p>Praktische stappen die bewoners kunnen nemen in de warmtetransitie</p>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Wat zijn de eerste stappen die ik als bewoner kan zetten?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Begin met isolatie: spouwmuur-, vloer- en dakisolatie hebben de grootste impact. Laat een energieadvies doen om te zien wat het meeste oplevert. Check het warmteplan van je gemeente om te weten wanneer jouw wijk aan de beurt is. Overweeg een hybride warmtepomp als tussenstap. Kleine maatregelen zoals tochtstrippen en HR++-glas helpen ook al.
+                    </div>
+                </div>
+
+                <div class="chat-conversation">
+                    <div class="chat-message user-message">
+                        <div class="message-label">Gebruiker</div>
+                        Hoe kan ik me voorbereiden op een warmtenet in mijn wijk?
+                    </div>
+                    <div class="chat-message ai-message">
+                        <div class="message-label">AI Assistent</div>
+                        Zorg eerst voor goede isolatie - warmtenetten werken het best bij lagere temperaturen. Informeer je over de planning via je gemeente en ga naar informatiebijeenkomsten. Overweeg alvast vervanging van radiatoren door geschiktere warmtenet-radiatoren. Let op dat je CV-ketel goed onderhouden blijft tot de aansluiting, en bereid je voor op eventuele tijdelijke overlast tijdens aanlegwerkzaamheden.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Openbare Chat -->
+            <div class="public-chat">
+                <div class="chat-header">
+                    <h3>💬 Openbare Chat</h3>
+                    <p>Stel je vragen over de onderwerpen op deze website</p>
+                </div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Stel je vraag hier..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="send-button" onclick="sendMessage()">Verstuur</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chatHistory = [];
+
+        function showSection(sectionId) {
+            // Verberg alle secties
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Toon geselecteerde sectie
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update menu styling
+            const buttons = document.querySelectorAll('.menu-item button');
+            buttons.forEach(button => button.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messagesContainer = document.getElementById('chatMessages');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            // Voeg gebruikersbericht toe
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user-message';
+            userMessage.innerHTML = `
+                <div class="message-label">Jij</div>
+                ${message}
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // Leeg input veld
+            input.value = '';
+            
+            // Simuleer AI-antwoord (dit zou normaal gesproken een API-call zijn)
+            setTimeout(() => {
+                const aiResponse = generateAIResponse(message);
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'chat-message ai-message';
+                aiMessage.innerHTML = `
+                    <div class="message-label">AI Assistent</div>
+                    ${aiResponse}
+                `;
+                messagesContainer.appendChild(aiMessage);
+                
+                // Scroll naar beneden
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+            
+            // Scroll naar beneden
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            const responses = {
+                'warmtepomp': 'Warmtepompen zijn een belangrijke technologie in de warmtetransitie. Ze kunnen efficiënt warmte uit de buitenlucht, bodem of water halen. Welk type warmtepomp overweeg je?',
+                'isolatie': 'Goede isolatie is de basis van elke warmtetransitie. Spouwmuur-, dak- en vloerisolatie hebben vaak de beste kosten-batenverhouding. Welk deel van je huis wil je isoleren?',
+                'warmtenet': 'Warmtenetten brengen duurzame warmte van een centrale bron naar je huis. Ze kunnen gebruikt maken van geothermie, biomassa of restwarmte. Komt er een warmtenet in jouw wijk?',
+                'subsidie': 'Er zijn verschillende subsidies beschikbaar voor de warmtetransitie, zoals ISDE en lokale gemeenteregelingen. Check ook de website van je gemeente voor lokale subsidies.',
+                'coöperatie': 'Energiecoöperaties kunnen een mooie manier zijn om samen met buren duurzame warmteprojecten op te starten. Ze bieden voordelen zoals gezamenlijke inkoop en lokale controle.',
+                'wetgeving': 'De warmtetransitie wordt ondersteund door verschillende wetten, zoals de Wet Collectieve Warmtevoorziening en het verbod op gasketels in nieuwbouw vanaf 2026.',
+                'gemeente': 'Gemeenten hebben een belangrijke rol in de warmtetransitie. Ze maken warmteplannen en bepalen welke wijken wanneer overgaan op duurzame warmte.',
+                'kosten': 'De kosten van de warmtetransitie variëren sterk per woning en gekozen oplossing. Isolatie is vaak het meest kosteneffectief, gevolgd door een warmtepomp.'
+            };
+            
+            const lowerMessage = message.toLowerCase();
+            
+            for (const [keyword, response] of Object.entries(responses)) {
+                if (lowerMessage.includes(keyword)) {
+                    return response;
+                }
+            }
+            
+            // Standaard antwoord
+            return 'Dat is een goede vraag over de warmtetransitie! Je kunt meer informatie vinden in de verschillende secties: wetgeving, technische oplossingen, energiecoöperaties of praktische tips voor bewoners. Waar kan ik je mee helpen?';
+        }
+
+        // Focus op chat input bij laden
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chatInput').focus();
+        });
+    </script>
+</body>
